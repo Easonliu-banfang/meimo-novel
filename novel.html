@@ -216,6 +216,82 @@
     border-radius: 8px; padding: 5px 11px; cursor: pointer; font-size: 12px; font-family: inherit; }
   .ep-foot button:hover { border-color: var(--accent); color: var(--accent); }
 
+  /* ---------- 看剧（右侧视频栏） ---------- */
+  .vp-tab {
+    position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+    z-index: 47; writing-mode: vertical-rl; letter-spacing: 2px;
+    background: var(--accent); color: #fff; border: none; cursor: pointer;
+    padding: 16px 9px; border-radius: 12px 0 0 12px;
+    font-family: -apple-system, "PingFang SC", sans-serif; font-size: 13px;
+    box-shadow: -3px 0 14px rgba(0,0,0,.12);
+  }
+  .vp-tab:hover { opacity: .9; }
+  body.vp-on .vp-tab { display: none; }
+
+  .vp {
+    position: fixed; top: 0; right: 0; height: 100vh; height: 100dvh;
+    width: min(470px, 100vw); z-index: 49;
+    background: var(--paper); border-left: 1px solid var(--line);
+    display: flex; flex-direction: column;
+    transform: translateX(102%); transition: transform .26s cubic-bezier(.4,0,.2,1);
+    font-family: -apple-system, "PingFang SC", sans-serif; font-size: 13px;
+    box-shadow: -8px 0 30px rgba(0,0,0,.10);
+  }
+  .vp.open { transform: none; }
+
+  .vp-head { display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--line); flex: none; }
+  .vp-head .t { font-weight: 600; color: var(--ink); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vp-head .t b { color: var(--accent); }
+  .vp-head .x { margin-left: auto; border: none; background: transparent;
+    color: var(--ink-soft); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; flex: none; }
+  .vp-head .x:hover { color: var(--ink); }
+
+  .vp-nav { display: flex; align-items: center; gap: 8px; padding: 10px 14px;
+    border-bottom: 1px solid var(--line); flex: none; }
+  .vp-nav button {
+    flex: 1; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 9px; padding: 7px 6px; cursor: pointer; font-size: 12.5px; font-family: inherit;
+  }
+  .vp-nav button:hover { border-color: var(--accent); color: var(--accent); }
+  .vp-nav input {
+    width: 62px; border: 1px solid var(--line); border-radius: 9px; padding: 7px 6px;
+    text-align: center; font-size: 13px; font-family: inherit; background: var(--paper); color: var(--ink);
+  }
+  .vp-nav input:focus { outline: none; border-color: var(--accent); }
+  .vp-nav .of { color: var(--ink-soft); font-size: 12px; flex: none; }
+
+  .vp-frame { flex: 1; background: #0b0b0c; position: relative; min-height: 0; }
+  .vp-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .vp-frame .ph {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    text-align: center; color: #b9b3a8; padding: 24px; font-size: 13px; line-height: 1.9;
+  }
+  .vp-frame .ph b { color: #e8e2d6; display: block; margin-bottom: 8px; font-size: 14px; }
+
+  .vp-foot { flex: none; padding: 10px 14px 12px; border-top: 1px solid var(--line);
+    color: var(--ink-soft); font-size: 12px; line-height: 1.7; }
+  .vp-foot .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .vp-foot a { color: var(--accent); text-decoration: none; }
+  .vp-foot a:hover { text-decoration: underline; }
+  .vp-foot .map { color: var(--ink); }
+  .vp-foot .map b { color: var(--accent); }
+  .vp-foot .warn { color: #a8654f; }
+
+  @media (min-width: 1160px) {
+    /* 视频栏展开时，正文整体左移，顶栏与内容同步 */
+    body.vp-on { padding-right: min(470px, 100vw); }
+  }
+  @media (max-width: 1159px) {
+    .vp { width: 100vw; }
+  }
+  @media (max-width: 640px) {
+    .vp-tab { padding: 12px 7px; font-size: 12px; }
+    .vp-nav button { padding: 8px 4px; font-size: 12px; }
+  }
+  @media print { .vp, .vp-tab { display: none !important; } }
+
   .chapter p.speaking {
     background: var(--hl); border-radius: 3px;
     box-shadow: inset 3px 0 0 0 var(--accent);
@@ -59827,6 +59903,39 @@
 
 <div class="toast" id="toast" hidden></div>
 
+<!-- 看剧：右侧浮动入口 + 视频栏 -->
+<button class="vp-tab" id="vp-tab" title="边看边读">▶ 看剧</button>
+<div class="vp" id="vp">
+  <div class="vp-head">
+    <span class="t">御兽学院 · 第 <b id="vp-n">1</b> 集</span>
+    <button class="x" id="vp-close" title="收起">×</button>
+  </div>
+  <div class="vp-nav">
+    <button id="vp-prev">‹ 上一集</button>
+    <input id="vp-in" type="number" min="1" value="1">
+    <span class="of">/ <span id="vp-total">103</span></span>
+    <button id="vp-next">下一集 ›</button>
+  </div>
+  <div class="vp-frame">
+    <iframe id="vp-frame" src="about:blank" allow="autoplay; fullscreen; encrypted-media"
+            referrerpolicy="no-referrer" allowfullscreen></iframe>
+    <div class="ph" id="vp-ph">
+      <div>
+        <b>红果官方播放器</b>
+        点「看剧」加载。网页版仅开放前 5 集，<br>其余需在红果短剧 App 内观看。
+      </div>
+    </div>
+  </div>
+  <div class="vp-foot">
+    <div class="row">
+      <span class="map" id="vp-map">—</span>
+      <span style="margin-left:auto"></span>
+      <a id="vp-ext" href="#" target="_blank" rel="noopener">新窗口打开</a>
+    </div>
+    <div class="warn" id="vp-warn" hidden>第 6 集起网页版不提供，请在红果 App 里看（本机已安装）。</div>
+  </div>
+</div>
+
 <!-- 剧集对照面板 -->
 <div class="ep" id="ep" hidden>
   <h4>剧集对照 · 御兽学院<button class="x" id="ep-close" title="关闭">▾</button></h4>
@@ -59931,6 +60040,7 @@ function update() {
     last = i;
     markToc(i);
     if (!$('ep').hidden) renderEp();
+    if ($('vp').classList.contains('open')) vpRender();
   }
   var want = (y > 420 && titles[i]) ? titles[i] : bookName;
   if (want !== curTitle) { curTitle = want; btEl.textContent = want; }
@@ -60425,6 +60535,62 @@ $('ep-clear').onclick = function () {
   toast('已清空对照表');
 };
 
+/* ---------- 看剧（红果官方播放器） ---------- */
+var HG_SERIES="7665922136694852633";var HG_VIDS=["7665925095088475160","7665925138625334296","7665925111114910744","7665925160846773272","7665925215947328536","7665925159399738392","7665925100847238168","7665925148008008728","7665925091552660504","7665925157772348440","7665925180429962264","7665925193537162264","7665925182548102168","7665925230811958296","7665925163896032280","7665925098536193048","7665925200701049880","7665925252198714392","7665925256598522904","7665925121625820184","7665925184687197208","7665925236809796632","7665925151543790616","7665925207567125528","7665925143331359768","7665925137274784792","7665925212600290328","7665925195051306008","7665925140072369176","7665925229255855128","7665925162214116376","7665925218732362776","7665925223752928280","7665925152755960856","7665925204517866520","7665925106908040216","7665925210104679448","7665925103997176856","7665925205763574808","7665925253494737944","7665925125472013336","7665925114122226712","7665925227653631000","7665925115489569816","7665925222008097816","7665925108304727064","7665925248130223128","7665925188776643608","7665925171382864920","7665925238252637208","7665925177603001368","7665925232422571032","7665925196506729496","7665925245152267288","7665925086523706392","7665925131474062360","7665925198591314968","7665925246649633816","7665925186432027672","7665925088042028056","7665925168316828696","7665925102185237528","7665925105381297176","7665925146300927000","7665925089958824984","7665925156212050968","7665925123538422808","7665925117075000344","7665925174541159448","7665925191595215896","7665925120078138392","7665925165296929816","7665925112683564056","7665925134305201176","7665925135760624664","7665925241616469016","7665925128634502168","7665925176084663320","7665925235127880728","7665925126956796952","7665925096917175320","7665925093511416856","7665925144803544088","7665925255050841112","7665925132833000472","7665925141439728664","7665925250466450456","7665925214294772760","7665925225132870680","7665925154618215448","7665925220267478040","7665925243113835544","7665925169738697752","7665925239691283480","7665925118534618136","7665925173081541656","7665925233890561048","7665925166781697048","7665925217297910808","7665925202294885400","7665925130140257304","7665925179272334360","7665925190290770968"];
+var vpEp = 1;
+function vpUrl(n) {
+  var base = 'https://hongguoduanju.com/player/' + HG_SERIES;
+  if (n <= 1) return base;
+  return base + '/' + HG_VIDS[n - 1];
+}
+function vpRender() {
+  $('vp-n').textContent = vpEp;
+  $('vp-in').value = vpEp;
+  $('vp-total').textContent = HG_VIDS.length;
+  $('vp-ext').href = vpUrl(vpEp);
+  $('vp-warn').hidden = vpEp <= 5;
+  var r = epFor(last < 0 ? 0 : last);
+  $('vp-map').innerHTML = r
+    ? (titles[last] || '') + ' <b>≈ 第 ' + r.ep + ' 集</b>'
+    : '未建立章节对照（点「对照」可标注）';
+  try { localStorage.setItem('nb-vpep-v1', String(vpEp)); } catch (e) {}
+}
+function vpGo(n, force) {
+  n = Math.max(1, Math.min(HG_VIDS.length, parseInt(n, 10) || 1));
+  var changed = (n !== vpEp) || force;
+  vpEp = n;
+  if (changed && !$('vp').hidden) {
+    $('vp-ph').style.display = 'none';
+    $('vp-frame').src = vpUrl(n);
+  }
+  vpRender();
+}
+function vpOpen() {
+  $('vp').classList.add('open');
+  document.body.classList.add('vp-on');
+  $('resume').hidden = true;
+  $('ep').hidden = true;
+  /* 有章节对照就自动跟到对应集数 */
+  var r = epFor(last < 0 ? 0 : last);
+  if (r && r.ep >= 1 && r.ep <= HG_VIDS.length && r.ep !== vpEp) {
+    vpGo(r.ep, true);
+  } else if ($('vp-frame').src === 'about:blank' || $('vp-frame').src === '') {
+    $('vp-ph').style.display = 'none';
+    $('vp-frame').src = vpUrl(vpEp);
+  }
+  vpRender();
+}
+function vpClose() {
+  $('vp').classList.remove('open');
+  document.body.classList.remove('vp-on');
+}
+$('vp-tab').onclick = vpOpen;
+$('vp-close').onclick = vpClose;
+$('vp-prev').onclick = function () { vpGo(vpEp - 1); };
+$('vp-next').onclick = function () { vpGo(vpEp + 1); };
+$('vp-in').onchange = function () { vpGo(this.value); };
+$('vp-in').onkeydown = function (e) { if (e.key === 'Enter') vpGo(this.value); };
+
 /* ---------- 启动 ---------- */
 function boot() {
   measure();
@@ -60489,6 +60655,9 @@ function boot() {
   markToc(last < 0 ? 0 : last);
   renderBookmark();
   renderEp();
+  var savedEp = parseInt(localStorage.getItem('nb-vpep-v1') || '1', 10);
+  vpEp = (savedEp >= 1 && savedEp <= HG_VIDS.length) ? savedEp : 1;
+  vpRender();
   if (migrated) toast('已把旧阅读进度迁移到全本');
 
   var box = $('resume'), startY = window.pageYOffset;
