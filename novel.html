@@ -187,6 +187,25 @@
   .plot-row .nt { color: var(--ink-soft); font-size: 12px; margin-top: 3px; line-height: 1.6; }
   .plot-foot { border-top: 1px solid var(--line); margin-top: 8px; padding-top: 9px;
     color: var(--ink-soft); font-size: 11.5px; }
+  .plot-row.bad .idx { color: #b0453a; }
+
+  /* 剧情命中的段落 */
+  .chapter p.plot-hit {
+    background: rgba(138,109,63,.16);
+    box-shadow: inset 3px 0 0 0 var(--accent);
+    border-radius: 3px;
+    animation: hitPulse 1.6s ease-out 1;
+  }
+  @keyframes hitPulse {
+    0%   { background: rgba(138,109,63,.42); }
+    100% { background: rgba(138,109,63,.16); }
+  }
+  body.night .chapter p.plot-hit { background: rgba(201,168,106,.20); }
+  @keyframes hitPulseN {
+    0%   { background: rgba(201,168,106,.48); }
+    100% { background: rgba(201,168,106,.20); }
+  }
+  body.night .chapter p.plot-hit { animation-name: hitPulseN; }
 
   .chapter p.speaking {
     background: var(--hl); border-radius: 3px;
@@ -60209,26 +60228,8 @@ $('btn-night').onclick = function () {
 };
 
 /* ---------- 剧情查找 ---------- */
-/* 每条的 ch 是章节号（第N章），运行时映射到 section 索引 */
-var PLOTS = [
-  {
-    key: 'xuetu',
-    name: '御兽吐血',
-    desc: '御兽受伤吐血的场面，按章节顺序排列。',
-    items: [
-      { ch: 123, who: '绯月', note: '为替青霜挡下致命一击，以觉醒一阶之身挡在姐姐面前，腹腔被鬼族手掌贯穿，鲜血滴落在地。' },
-      { ch: 238, who: '涂山月', note: '涂山月璃之母身负重伤，唇角不断溢血，仍要启动青丘一族底蕴把女儿送走。' },
-      { ch: 242, who: '琉璃', note: '守护领域被毁灭光柱击碎，反噬之下猛地喷出一口鲜血。' },
-      { ch: 265, who: '琉璃', note: '迎战战天使族长米战，被震得喷血；随后被莉莉丝的血之法则瞬间吸收、反哺疗伤。' },
-      { ch: 271, who: '莉莉丝', note: '为突破骨魔防御拼到极限，鲜血从唇角不断渗出。' },
-      { ch: 414, who: '琉璃', note: '不顾自身伤势、为护住顾星硬撼魔族，再次被震飞，鲜血狂喷。' },
-      { ch: 419, who: '琉璃', note: '亲眼看着顾星被斩首，金色眼眸瞬间被血丝充斥，两行血泪滑落。' },
-      { ch: 452, who: '青霜', note: '魔化鬼族不计代价在她身上留伤，数道深可见骨的伤口，鲜血染红衣襟。' },
-      { ch: 460, who: '琉璃', note: '硬挡图腾九阶全力一击，闷哼一声，嘴角溢出一丝鲜血。' },
-      { ch: 486, who: '琉璃', note: '剑尖刺入魔神渊心脏时遭强烈反震，如遭重击，喷出一口鲜血。' }
-    ]
-  }
-];
+/* PLOTS 由构建脚本注入：每条带 pi = 全文档段落序号，可直接定位到那一句 */
+var PLOTS = [{"key":"xuetu","name":"御兽吐血","desc":"御兽受伤吐血的场面，按章节顺序排列。点任意一条定位到那一句。","items":[{"ch":123,"who":"绯月","note":"为替青霜挡下致命一击，以觉醒一阶之身挡在姐姐面前，腹腔被鬼族手掌贯穿，鲜血滴落在地。","pi":14590},{"ch":238,"who":"涂山月","note":"涂山月璃之母身负重伤，唇角不断溢血，仍要启动青丘一族底蕴把女儿送走。","pi":28239},{"ch":242,"who":"琉璃","note":"守护领域被毁灭光柱击碎，反噬之下猛地喷出一口鲜血。","pi":28637},{"ch":265,"who":"琉璃","note":"迎战战天使族长米战被震得喷血；随后被莉莉丝的血之法则瞬间吸收、反哺疗伤。","pi":31066},{"ch":271,"who":"莉莉丝","note":"为突破骨魔防御拼到极限，鲜血从唇角不断渗出。","pi":31665},{"ch":414,"who":"琉璃","note":"不顾自身伤势、为护住顾星硬撼魔族，再次被震飞，鲜血狂喷。","pi":46184},{"ch":419,"who":"琉璃","note":"亲眼看着顾星被斩首，金色眼眸瞬间被血丝充斥，两行血泪滑落。","pi":46667},{"ch":452,"who":"青霜","note":"魔化鬼族不计代价在她身上留伤，数道深可见骨的伤口，鲜血染红衣襟。","pi":50293},{"ch":460,"who":"琉璃","note":"硬挡图腾九阶全力一击，闷哼一声，嘴角溢出一丝鲜血。","pi":51137},{"ch":486,"who":"琉璃","note":"剑尖刺入魔神渊心脏时遭强烈反震，如遭重击，喷出一口鲜血。","pi":54025}]}];
 var CHMAP = null;
 var plotCur = 0;
 
@@ -60238,6 +60239,24 @@ function buildChMap() {
     var m = /^第(\d+)章/.exec(titles[i]);
     if (m) CHMAP[parseInt(m[1], 10)] = i;
   }
+}
+function plotHit(el) {
+  var prev = document.querySelectorAll('.chapter p.plot-hit');
+  for (var i = 0; i < prev.length; i++) prev[i].classList.remove('plot-hit');
+  if (!el) return;
+  el.classList.add('plot-hit');
+  /* 重新触发脉冲动画 */
+  el.style.animation = 'none';
+  void el.offsetWidth;
+  el.style.animation = '';
+}
+function plotJump(pi) {
+  if (typeof pi !== 'number' || pi < 0 || pi >= paras.length) return false;
+  var el = paras[pi].el;
+  var y = el.getBoundingClientRect().top + window.pageYOffset - window.innerHeight * 0.28;
+  window.scrollTo({ top: Math.max(0, y), behavior: 'instant' });
+  plotHit(el);
+  return true;
 }
 function plotRender() {
   if (!CHMAP) buildChMap();
@@ -60252,10 +60271,11 @@ function plotRender() {
   }
   var p = PLOTS[plotCur];
   $('plot-desc').textContent = p.desc;
-  $('plot-list').innerHTML = p.items.map(function (it) {
+  $('plot-list').innerHTML = p.items.map(function (it, n) {
     var idx = CHMAP[it.ch];
     var t = (idx !== undefined && titles[idx]) ? titles[idx] : ('第' + it.ch + '章');
-    return '<div class="plot-row" data-ch="' + it.ch + '">' +
+    var bad = (typeof it.pi !== 'number' || it.pi < 0) ? ' bad' : '';
+    return '<div class="plot-row' + bad + '" data-n="' + n + '">' +
       '<span class="idx">' + it.ch + '</span>' +
       '<span class="body"><span class="ttl">' + t + '</span>' +
       '<span class="who">' + it.who + '</span>' +
@@ -60264,12 +60284,16 @@ function plotRender() {
   var rows = $('plot-list').querySelectorAll('.plot-row');
   for (var j = 0; j < rows.length; j++) {
     rows[j].onclick = function () {
-      var c = parseInt(this.getAttribute('data-ch'), 10);
-      var k = CHMAP[c];
-      if (k === undefined) { toast('找不到第' + c + '章'); return; }
-      jumpTo(tops[k] || 0);
+      var it = PLOTS[plotCur].items[parseInt(this.getAttribute('data-n'), 10)];
+      var k = CHMAP[it.ch];
       $('plot').hidden = true;
-      toast('已跳到 ' + (titles[k] || ''));
+      if (!plotJump(it.pi)) {
+        if (k === undefined) { toast('找不到第' + it.ch + '章'); return; }
+        jumpTo(tops[k] || 0);
+        toast('已跳到 ' + (titles[k] || '') + '（未定位到具体段落）');
+        return;
+      }
+      toast('已定位到 ' + (k !== undefined ? titles[k] : ('第' + it.ch + '章')));
     };
   }
 }
@@ -60278,7 +60302,7 @@ function renderPlot() { if (!$('plot').hidden) plotRender(); }
 $('btn-plot').onclick = function () {
   var el = $('plot');
   el.hidden = !el.hidden;
-  if (!el.hidden) { $('resume').hidden = true; $('ep') && ($('ep').hidden = true); plotRender(); }
+  if (!el.hidden) { $('resume').hidden = true; plotRender(); }
 };
 $('plot-close').onclick = function () { $('plot').hidden = true; };
 
